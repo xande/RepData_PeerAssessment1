@@ -14,6 +14,7 @@ library(ggplot2)
 
 data <- read.csv(unz("activity.zip", "activity.csv"))
 data$date <- as.Date(data$date, "%Y-%m-%d")
+data$steps <- as.numeric(data$steps)
 
 head(data)
 str(data)
@@ -21,7 +22,7 @@ str(data)
 
 ## What is mean total number of steps taken per day?
 Histogram of the total number of steps taken each day:
-```{r}
+```{r fig.height=3}
 daily_steps <- aggregate(steps ~ date, data=data, FUN=sum)
 with(daily_steps, hist(steps))
 ```
@@ -44,15 +45,17 @@ with(activity_pattern, plot(x=interval, y=steps, type="l", main="Daily activity 
 
 Finding 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps
 ```{r}
-activity_pattern[which.max(activity_pattern$steps), ]
+max_interval <- activity_pattern[which.max(activity_pattern$steps), ]
 ```
+
+Max interval is `r max_interval$interval`
 
 ## Imputing missing values
 
 ```{r}
 missing_values <- sum(is.na(data$steps))
 ```
-Lets imput the missing values. As an NA replacement, we'll take the data from averaged steps per corresponding interval and round it.
+Lets imput the missing values. As a strategy for NA replacement, we'll take the data from averaged steps per corresponding interval and round it.
 ```{r}
 data_imput <- data
 missing_steps <- which(is.na(data_imput$steps))
@@ -65,18 +68,13 @@ for (i in missing_steps) {
 
 Total number of missing values in the dataset is `r missing_values` out of `r nrow(data)` records.
 
-Histogram of the total number of steps taken each day:
-```{r fig.height=3}
-daily_steps_imput <- aggregate(steps ~ date, data=data_imput, FUN=sum)
-with(daily_steps_imput, hist(steps))
-```
-
 Using data with imputed value, lets calculate the **mean** and **median** total number of steps taken per day
 ```{r}
+daily_steps_imput <- aggregate(steps ~ date, data=data_imput, FUN=sum)
 day_mean_imput <- mean(daily_steps_imput$steps)
 day_median_imput <- median(daily_steps_imput$steps, na.rm=T)
 ```
-Mean total number of steps taken per day, according to data with imputed values is `r format(day_mean_imput, nsmall=2)` with median `r format(day_median_imput, nsmall=2)`, compated to original data with missing values - 
+**Mean** total number of steps taken per day, according to data with imputed values **is `r format(day_mean_imput, nsmall=2)`** with **median `r format(day_median_imput, nsmall=2)`**, compated to original data with missing values - 
 `r format(day_mean, nsmall=2)` with median `r format(day_median, nsmall=2)`.
 
 
